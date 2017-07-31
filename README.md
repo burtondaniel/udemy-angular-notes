@@ -10,11 +10,13 @@ npm install --save bootstrap
 
 Which will install the library in the node_modules folder in your project, then add the css to the .angular-cli.json file:
 
+![styles](/images/11-bootstrap-css-link.png)
 
 ## 13. How an Angular App gets Loaded and Started
 index.html is served by the server - this is defined in the angular-cli file
 There is an <app-root> element  in there by default. An app component can bind to it as follows:
 
+![app-component](/images/11-app-component-binding.png)
 
 Selector identifies the dom element to be replaced with the content of the component.
 
@@ -22,11 +24,13 @@ Ng serve creates script bundle and chucks them into the index.html file that cau
 Main.ts is the file which contains the JS / TS that is executed first.
 Example:
 
+![main.ts](/images/11-main-ts.png)
+
 It loads the app.module file, which in turn declares components to load, imports, etc.
 
 Hence:
 
-
+![app-load-order](/images/11-app-load-order.png)
 
 ## 14. Components are Important!
 Components - reusable pieces on a page, ie. a nav bar can be a component, main content can be a component
