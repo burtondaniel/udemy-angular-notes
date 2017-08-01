@@ -136,3 +136,17 @@ Output it in the template:
 
 Any condition (other than multiline / block expressions) which can be resolved to a string is acceptable inside the curly braces.
 Ie: `{{ ‘server’ }}`
+
+Can also return results of a method in the component:
+
+```
+export class ServerComponent {
+  serverStatus = 'offline';
+  
+  getServerStatus() {
+      return this.serverStatus;
+  }
+}
+```
+and in the template:
+`{{ getServerStatus() }}`
