@@ -35,7 +35,6 @@ Hence:
 ## 14. Components are Important!
 Components - reusable pieces on a page, ie. a nav bar can be a component, main content can be a component
 
-
 ## 15. Creating a New Component
 Generally you place new components under the app directory in the src folder.
 Recommends putting components in their own folders
@@ -78,11 +77,14 @@ bootstrap: - array of components to use for index.html (default components)
 
 ## 17. Using Custom Components
 In the templateUrl file, create a dom element using the selector you defined in the corresponding component.
-## 18. Creating Components with the CLI & Nesting Components
-While ‘ng serve’ is running
 
-ng generate component <component-name>
-ng g c <component-name>
+## 18. Creating Components with the CLI & Nesting Components
+While `ng serve` is running
+
+```
+  ng generate component <component-name>
+  ng g c <component-name>
+```
 
 It will create the .ts, .css, .spec and .html files for you, as well as add the imports to the app module. It creates the component in it’s own folder under the app folder.
 
@@ -90,16 +92,17 @@ The Selectors you use in a component can be placed into html files as many times
 
 ## 19. Working with Component Templates
 Basically says you need one of either template or templateUrl
+
 ## 20. Working with Component Styles
 Use the styleUrls or styles parameters in @Component argument to specify styles
 
 If using styles, you can use backticks to have line breaks etc accepted by javascript.
 ```typescript
-styles: [`
-	h3 {
-		color: dodgerblue;
-	}
-	`]
+  styles: [`
+    h3 {
+        color: dodgerblue;
+    }
+  `]
 ```
 ## 21. Fully Understanding the Component Selector
 You can use a subset of CSS selectors to find an element to bind the angular component to.
@@ -115,26 +118,31 @@ Seems to generate warnings if you don’t use app- to start the name of the sele
 ## 22. What is Databinding?
 Dynamically updated data (from your business logic) reflected in templates.
 String interpolation:
-	```{{ data }}```
+	`{{ data }}`
 Property binding:
-	```[property] = “data”```
+	`[property] = “data”`
 
 Typescript can react to user events via Event Binding 
 Two way binding: bind typescript vars to user update of data
-  ```[(ngModel)] = “data”```
+
+```
+  [(ngModel)] = “data”
+```
   
 ## 23. String Interpolation
 
 Define vars in your component class:
 ```
-export class ServerComponent {
-	serverId = 10;
-	serverStatus: string = ‘offline’;
-}
+  export class ServerComponent {
+      serverId = 10;
+      serverStatus: string = ‘offline’;
+  }
 ```
 Output it in the template:
 
-`<p>Server with ID {{ serverId }} is {{ serverStatus }}</p>`
+```
+  <p>Server with ID {{ serverId }} is {{ serverStatus }}</p>
+```
 
 Any condition (other than multiline / block expressions) which can be resolved to a string is acceptable inside the curly braces.
 Ie: `{{ ‘server’ }}`
@@ -142,13 +150,13 @@ Ie: `{{ ‘server’ }}`
 Can also return results of a method in the component:
 
 ```
-export class ServerComponent {
-  serverStatus = 'offline';
-  
-  getServerStatus() {
-      return this.serverStatus;
+  export class ServerComponent {
+    serverStatus = 'offline';
+
+    getServerStatus() {
+        return this.serverStatus;
+    }
   }
-}
 ```
 and in the template:
 ```
