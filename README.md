@@ -1,6 +1,6 @@
 # udemy-angular-notes
 https://www.udemy.com/the-complete-guide-to-angular-2
-Notes from an angular 2 course on Udemy.
+Notes from the above angular 2 course on Udemy.
 
 ## 11. A Basic Project Setup using Bootstrap for Styling
 You can add libraries (css and js) using NPM.
@@ -10,13 +10,13 @@ npm install --save bootstrap
 
 Which will install the library in the node_modules folder in your project, then add the css to the .angular-cli.json file:
 
-![styles](/images/11-bootstrap-css-link.png)
+![styles](./images/11-bootstrap-css-link.png)
 
 ## 13. How an Angular App gets Loaded and Started
 index.html is served by the server - this is defined in the angular-cli file
 There is an <app-root> element  in there by default. An app component can bind to it as follows:
 
-![app-component](/images/11-app-component-binding.png)
+![app-component](./images/11-app-component-binding.png)
 
 Selector identifies the dom element to be replaced with the content of the component.
 
@@ -24,13 +24,13 @@ Ng serve creates script bundle and chucks them into the index.html file that cau
 Main.ts is the file which contains the JS / TS that is executed first.
 Example:
 
-![main.ts](/images/11-main-ts.png)
+![main.ts](./images/11-main-ts.png)
 
 It loads the app.module file, which in turn declares components to load, imports, etc.
 
 Hence:
 
-![app-load-order](/images/11-app-load-order.png)
+![app-load-order](./images/11-app-load-order.png)
 
 ## 14. Components are Important!
 Components - reusable pieces on a page, ie. a nav bar can be a component, main content can be a component
@@ -122,7 +122,9 @@ Property binding:
 Typescript can react to user events via Event Binding 
 Two way binding: bind typescript vars to user update of data
   ```[(ngModel)] = “data”```
+  
 ## 23. String Interpolation
+
 Define vars in your component class:
 ```
 export class ServerComponent {
@@ -149,4 +151,31 @@ export class ServerComponent {
 }
 ```
 and in the template:
-`{{ getServerStatus() }}`
+```
+  {{ getServerStatus() }}
+```
+
+## 24. Property binding
+
+### Binding to HTML element properties
+Example given involves binding a variable to the disabled state of a button.
+
+```
+  <button class="btn btn-primary" [disabled]="allowNewServer">Add Server</button>
+```
+
+Adding code to the constructor to make the allowNewServer var change and highlight the binding:
+
+```
+  allowNewServer = false;
+  
+  constructor() {
+    setTimeout(() => {
+      this.allowNewServer = true;
+    }, 2000);
+  }
+```
+
+The binding occurs in the `[disabled]="allowNewServer"` code.
+
+
