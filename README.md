@@ -186,4 +186,69 @@ Adding code to the constructor to make the allowNewServer var change and highlig
 
 The binding occurs in the `[disabled]="allowNewServer"` code.
 
+## 25. Property Binding vs String Interpolation
 
+String interpolation:
+
+`{{ allowNewServer }}`
+
+Property binding:
+
+`<p [innerText]="allowNewServer"></p>`
+
+innerText is a property of all elements? It is used to refer to the text inside an element.
+
+String interpolation and property binding cannot be mixed, ie. you can't use string interpolation inside of a property binding.
+
+## 26. Event Binding
+
+Suggests a convention of naming methods that are bound to events in the template as `onXxx()`
+
+IN the template:
+
+`(click)="onCreateServer()"`
+
+where click is an event such as onClock, onMouseEnter etc., and it's value is a method defined in the component (or even define the method inline)
+
+Final product:
+
+```<button class="btn btn-primary" [disabled]="!allowNewServer" (click)="onCreateServer()">Add server</button>```
+
+## 28. Passing and Using Data with Event Binding
+
+input elements can bind to the input event.
+
+```<input (input)="onUpdateServerName($event)"/>```
+
+`$event` is a reserved variable name you can use in a template with event binding. It is the data associated with the triggering event.
+
+COmponent code:
+
+```typescript
+onUpdateServerName(event: Event) {
+  console.log(event.target.value)
+}```
+
+this code will trigger the event on each keystroke that occurs.
+
+Can cast typescript:
+
+```typescript
+(<HtmlInputElement>event.target).value
+```
+
+## 29. Two-Way-Databinding
+
+There is an easier way of performing event binding, using the `ngModel` directive.
+
+Note: `FormsModule` from `@angular/forms` needs to be imported first in the `AppModule`.
+
+```
+  <input [(ngModel)]="serverName"
+```
+
+It will update the value of `serverName` in your component automatically, and vice-versa if the variable changes from another source.
+
+## 31. Combining all forms of Databinding
+
+Overview of the types of databinding covered so far.
