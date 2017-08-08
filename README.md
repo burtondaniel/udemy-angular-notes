@@ -252,3 +252,65 @@ It will update the value of `serverName` in your component automatically, and vi
 ## 31. Combining all forms of Databinding
 
 Overview of the types of databinding covered so far.
+
+## Assignment 2 - implementing databinding
+
+app.component.html
+
+```html
+  <ol>
+    <li>Add a Input field which updates a property ('username') via Two-Way-Binding</li>
+    <input [(ngModel)]="username"/>
+    <button class="btn btn-primary" [disabled]="isButtonDisabled()" (click)="onResetUsername()" >Reset username</button>
+    <p>Username entered is {{ username }}</p>
+    <li>Output the username property via String Interpolation (in a paragraph below the input)</li>
+    <li>Add a button which may only be clicked if the username is NOT an empty string</li>
+    <li>Upon clicking the button, the username should be reset to an empty string</li>
+  </ol>
+```
+
+app.component.ts
+
+```typescript
+  import { Component } from '@angular/core';
+
+  @Component({
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.css']
+  })
+  export class AppComponent {
+      username: string = "";
+
+      isButtonDisabled() {
+          return this.username.trim().length === 0;
+      }
+
+      onResetUsername() {
+          this.username = "";
+      }
+  }
+
+```
+
+## 32. Understanding Directives
+
+Directives are **instructions in the DOM**.
+
+Components are directives with a template.
+
+Example of a directive:
+
+`<p appTurnGreen>Receives a green background</p>`
+
+Can bind to the attribute via a directive selector:
+
+```typescript
+@Directive({
+  selector: '[appTurnGreen]'
+})
+export class TurnGreenDirective {
+  ...
+}
+```
+
