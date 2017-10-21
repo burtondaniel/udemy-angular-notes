@@ -314,3 +314,37 @@ export class TurnGreenDirective {
 }
 ```
 
+## 33. Using ngIf to output data conditionally
+
+`ngIf` works like a regular `if` statement. 
+It is a structural directive, hence requires different syntax, and takes an expression as it's value:
+
+```html
+<p *ngIf="someBooleanValue">someBooleanValue must be true if you can see this</p>
+```
+
+## 34. Enhancing ngIf with an Else Condition
+
+Place a local reference (**#**) on the element, and make the element an ng-template
+
+```
+<p *ngIf="serverCreated; else noServer">Server was created, name is {{serverName}}</p>
+<ng-template #noServer>
+  <p>No server was created!
+</ng-template>
+```
+
+## 35. Styling Elements Dynamically with ngStyle
+
+Attribute directives
+
+`ngStyle`
+
+Requires configuration to do anything - takes a javascript object as a parameter.
+
+We use property binding to bind a value to the ngStyle directive. 
+
+```
+  <p [ngStyle]="{backgroundColor: getColour()}">Blah blah blah</p>
+```
+
