@@ -340,6 +340,8 @@ Attribute directives
 
 `ngStyle`
 
+Allows you to dynamically add css styles 
+
 Requires configuration to do anything - takes a javascript object as a parameter.
 
 We use property binding to bind a value to the ngStyle directive. 
@@ -348,3 +350,18 @@ We use property binding to bind a value to the ngStyle directive.
   <p [ngStyle]="{backgroundColor: getColour()}">Blah blah blah</p>
 ```
 
+## 36. Applying CSS Classes Dynamically with ngClass
+
+Attribute directive:
+
+`ngClass`
+
+Allows you to dynamically add or remove css classes. Also requires property binding.
+Takes a property which is a javascript object, of key-values which are:
+
+key: the css class
+value: the condition under which it will apply
+
+```
+  <p [ngClass]="{online: server-status === 'online'}">Blah blah blah</p>
+```
