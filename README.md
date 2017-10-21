@@ -365,3 +365,15 @@ value: the condition under which it will apply
 ```
   <p [ngClass]="{online: server-status === 'online'}">Blah blah blah</p>
 ```
+
+## 37. Outputting Lists with ngFor
+
+ngFor
+
+It is another structural directive - hence the need to prefix an *.
+
+```
+  <app-server *ngFor="let server of servers"></app-server>
+```
+
+Where `server` represents an item in the servers array.
