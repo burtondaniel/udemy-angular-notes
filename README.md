@@ -537,3 +537,64 @@ Gives you visibility of the loaded components and their properties at runtime, a
 
 ## 59. Splitting Apps into Components
 
+Starts with a small app that has everything in one component, and defines discreet parts that he then splits the app up into.
+
+Involves moving the HTML and then the corresponding component code.
+
+Discusses need for passing data between components.
+
+## 60. Property & Event Binding Overview
+
+Concept of passing data in the form of events between different elements on a page. 
+
+Can be used on:
+* HTML elements (native events and properties) 
+* Directives (custom properties and events)
+* Components (custom properties and events)
+
+## 61. Binding to Custom Properties
+
+_Summary: use @Input() to allow a property to be assigned to from another component_
+
+In a low level Component (ie ServerComponent which is used in a list somewhere) define a property of type JS object
+
+```typescript
+export class ServerElementComponent {
+  element: {type: string, name: string, content: string}
+}
+```
+
+Then in the Component which will use it:
+
+```typescript
+export class AppComponent {
+  serverElements = [{type: 'server', name: 'TestServer', content: 'Just a test!'}];
+}
+```
+html:
+
+```
+<app-server-element
+*ngFor="let serverElement of serverElements"
+[element]="serverElement"></app-server-element>
+```
+
+This still won't work - the property in ServerElementComponent needs a __Decorator__.
+
+```typescript
+import { Component, Input } from '@angular/core';
+...
+@Input() element: {type: string....}
+```
+
+This now allows any component using this ServerElementComponent can bind to the `element` property.
+
+## 62. Assigning an Alias to Custom Properties
+
+Inside the @Input() decorator, you can provide an alias for the name of the property, that can then be used to bind to.
+
+`@Input('srvElement') element: ...`
+
+and to use it:
+
+`[srvElement]="serverElement"`
