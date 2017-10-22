@@ -377,3 +377,163 @@ It is another structural directive - hence the need to prefix an *.
 ```
 
 Where `server` represents an item in the servers array.
+
+## 38. Getting the Index when using ngFor
+
+Use `index` (in a reserved keyword sense) in the ngFor definition.
+
+`*ngFor="let logItem of log; let i = index"`
+
+`i` will now be available to use in conditional statements.
+
+
+### 39. Project discussion
+## 40. Planning an app
+
+Splitting an app up into features, and then components.
+
+### Components
+- Root component
+- Header component
+
+#### Shopping list
+- Shopping List
+- Shopping list edit
+
+#### Recipe book (limited to displaying, no editing)
+- Recipe containing:
+- Recipe List
+- Recipe Item
+
+- Recipe Detail
+
+### Model items
+#### Shopping list
+- Ingredient
+
+#### Recipe book
+- Recipe
+
+## 41. Setting up the application
+ng new projectname
+npm install --save bootstrap
+
+add bootstrap to the .angular-cli.json file under the apps.styles property:
+
+```json
+"styles": [
+  "../node_modules/bootstrap/dist/css/bootstrap.min.css",
+  "styles.css"
+],
+      ```
+Discusses the use of Emmet - Using tab to autocomplete to knock up html quickly
+
+ie.
+
+`div.container>.row>p`
+
+pressing tab would then create associated HTML dom
+
+## 42. Creating the components
+
+Nested components (with spec disabled):
+
+`ng g c recipes --spec false`
+
+`ng g c recipes/recipe-list --spec false`
+
+## 43. Using the components
+
+Just adding html content to the components - nothing more than that.
+
+## 44. Adding a navigation bar
+
+More HTML - header nav based on bootstrap.
+
+## 46. Creating a recipe model 
+
+Just a TS class:
+
+```typescript
+export class Recipe {
+  public name: string;
+  public description: string;
+  public imagePath: string;
+
+  constructor(name: string, description: string, imagePath: string) {
+    this.name = name;
+    this.description = description;
+    this.imagePath = imagePath;
+  }
+}
+```
+
+## 47. Adding content to the recipes component
+
+Using instance of the recipe class as an array
+
+`import { Recipe } from '../recipe.model';`
+
+`...`
+
+`recipes: Recipe[] = [];`
+
+Populated the HTML with an ngFor where required to show the recipe on the page.
+
+## 48. Outputting a List of Recipes with ngFor
+
+for the img src, you have two options:
+
+String interpolation: `src="{{ recipe.imagePath }}`
+
+or
+
+Property binding: `[src]="recipe.imagePath"`
+
+
+## 49, 50
+
+Same stuff -- only HTML changes
+
+## 51. Creating Ingredient model
+
+Creating data objects without verbosity - add visibility modifiers to the constructor params.
+
+```typescript
+export class Ingredient {
+
+  constructor(public name: string, public amount: number) {
+  }
+}
+```
+
+## 52. Creating and Outputting the Shopping List
+
+Add ngFor to the ul in shopping-list and populate ingredient details.
+
+## 53, 54. Adding a Shopping List Edit Section and wrapping up the HTML stuff
+
+.. HTML edits
+
+# Section 4 - Debugging
+## 55. Understanding Angular Error Messages
+Straight-forward example of debugging stack trace in the browser console.
+
+## 56. Debugging code in the browser using source maps
+
+With enableProdMode() not called, you're in development mode. You get access to source maps in this mode.
+
+Putting break points in the compiled js in the browser console will jump you to the associated ts file source.
+
+Source TS is available at runtime in the browser under the sources path webpack/./src/app/
+
+## 57. Using Augury to Dive into Angular Apps
+
+A chrome dev tools extension that helps you debug angular apps.
+
+Gives you visibility of the loaded components and their properties at runtime, as well as injection graphs etc.
+
+# Section 5. Understanding Components and Databinding
+
+## 59. Splitting Apps into Components
+
