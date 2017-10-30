@@ -424,8 +424,8 @@ add bootstrap to the .angular-cli.json file under the apps.styles property:
 "styles": [
   "../node_modules/bootstrap/dist/css/bootstrap.min.css",
   "styles.css"
-],
-      ```
+],```
+
 Discusses the use of Emmet - Using tab to autocomplete to knock up html quickly
 
 ie.
@@ -598,3 +598,117 @@ Inside the @Input() decorator, you can provide an alias for the name of the prop
 and to use it:
 
 `[srvElement]="serverElement"`
+
+## 63. Binding to Custom Events
+
+In the selector tag for an embedded component, you can add an attribute that can be used to hook up the results of an event to a handler method in the parent component.
+
+`<app-cockpit (serverCreated)="onServerAdded($event)"></app-cockpit>`
+
+We would then expect the app-cockpit associated component to have a property called:
+
+`serverCreated`
+
+And make it an event that can be emitted using the EventEmitter (with the property name matching the reference in the parent template)s:
+
+```import {EventEmitter, Output} from @angular/core'
+...
+@Output()
+serverCreated = new EventEmitter<{serverName: string, serverContent: string>
+... // and in the method that emits it
+this.serverCreated.emit({serverName: 'servername', serverContent: 'newContent'});```
+
+## 63. Assigning an alias to Custom Events
+
+Easy:
+
+```@Output('aliasName')```
+
+## 66. Understanding View Encapsulation
+
+Angular encapsulates CSS styles to the components they are defined within.
+
+It achieves this through all elements within a component getting the same attribute assigned to them, in order to uniquely identify it.
+
+## 67. More on View Encapsulation
+
+You can override this behaviour by changin the encapsulation parameter in the @Component annotation
+
+```
+encapsulation: ViewEncapsulation.Native, 
+ViewEncapsulation.None, 
+ViewEncapsulation.Emulated
+```
+`None`:
+Styles defined in the associated Component will then apply application wide.
+
+`Native`:
+Uses 'shadow dom' which is not supported in all browsers
+
+`Emulated`:
+default encapsulation
+
+## 68. Using Local References (#) in Templates
+
+Get the value of an element without using 2way binding, by using a local reference.
+
+It can be placed on any HTML element. 
+
+```angular
+ <input #serverNameInput></input>
+```
+
+It holds a reference to the entire HTML element (type HTMLInputElement in the case of an input). It can be used anywhere in the template (not in the typescript code however).
+
+(click)="onAddServer(serverNameInput)"
+
+## 69. Getting Access to the Template and DOM with @ViewChild
+
+@ViewChild decorator (annotation) is used on properties within a Component.
+
+```typescript
+@ViewChild('serverContentInput') serverNameInput: ElementRef;
+```
+
+Argument is required - the Local Reference is used here. Can be accessed in the template as follows:
+
+```typescript
+this.serverNameInput.nativeElement.value
+```
+
+This can then be accessed at any time.
+
+Advises to not set the value of the elements through this method - use property binding or other methods that are better suited to this.
+
+## 70. Projecting Content into Components with ng-content
+
+Mark a place in a template that will have the contents inside of the components selector tag injected.
+
+Given a component called HelloComponent
+```html
+<app-hello><p>Hello!</p></app-hello>
+```
+
+Inside the template for the component:
+```html
+  <ng-content></ng-content>
+```
+
+It will output `<p>Hello!</p>`
+
+This is called 'projection' - good for generating generic things such as tabs.
+
+## 71. Understanding the Component Lifecycle
+
+You can hook into the phases of a component's lifecycle at the following points:
+
+ngOnChanges - called after a bound input property changes (`@Input`)
+ngOnInit - called once the component is initialized (before it's rendered)
+ngDoCheck - called during every change detection run (system by which angular determines if something has changed in a component - ie. property value, etc, or also even from events firing such as clicks)
+ngAfterContentInit - after content (ng-content) has been projected into view
+ngAfterContentChecked - after projected content has been checked
+ngAfterViewInit - called after the component's view and CHILD VIEWS have been initialized
+ngAfterViewChecked - called every time the view (and child views) have been checked
+ngOnDestroy - once a comonent is about to be destroyed
+
+## 72. Seeing Lifecycle Hooks in Action
