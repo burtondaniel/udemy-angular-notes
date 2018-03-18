@@ -702,13 +702,512 @@ This is called 'projection' - good for generating generic things such as tabs.
 
 You can hook into the phases of a component's lifecycle at the following points:
 
-ngOnChanges - called after a bound input property changes (`@Input`)
-ngOnInit - called once the component is initialized (before it's rendered)
-ngDoCheck - called during every change detection run (system by which angular determines if something has changed in a component - ie. property value, etc, or also even from events firing such as clicks)
-ngAfterContentInit - after content (ng-content) has been projected into view
-ngAfterContentChecked - after projected content has been checked
-ngAfterViewInit - called after the component's view and CHILD VIEWS have been initialized
-ngAfterViewChecked - called every time the view (and child views) have been checked
-ngOnDestroy - once a comonent is about to be destroyed
+- `ngOnChanges` - called after a bound input property changes (`@Input`) - takes param of SimpleChanges
+- `ngOnInit` - called once the component is initialized (before it's rendered)
+- `ngDoCheck` - called during every change detection run (system by which angular determines if something has changed in a component - ie. property value, etc, or also even from events firing such as clicks), also from promises returning
+- `ngAfterContentInit` - after content (ng-content) has been projected into view
+- `ngAfterContentChecked` - after projected content has been checked
+- `ngAfterViewInit` - called after the component's view and CHILD VIEWS have been initialized
+- `ngAfterViewChecked` - called every time the view (and child views) have been checked
+- `ngOnDestroy` - once a comonent is about to be destroyed
 
 ## 72. Seeing Lifecycle Hooks in Action
+
+implement them by implementing the methods in a component, and making the component implement the interface of the same names (minus ng prefix).
+
+ngOnChanges() - when called you get access to current value, previous value, etc
+
+ngAfterContentInit() 
+
+ 
+## 73. Lifecycle Hooks and Template Access
+ 
+@ViewChild  - only available when afterViewInit is loaded.
+ 
+`@ViewChild('heading') heading: ElementRef;`
+
+`<div #heading></div>`
+
+If you were to access heading in onInit it would be empty.
+
+## 74. Getting access to ng-content with @ContentChild
+
+@ContentChild('contentParagraph'): content ElementRef;
+
+Can access an element that's projected inside of an ng-content block. - otherwise in the outer block it could be accessed via ViewChield. 
+
+
+### end of section
+
+# Section 6 - Components & Data Binding
+
+## 77. Adding Navigation with Event Binding and ngIf
+
+Uses same approach as in the assignment to do a hacky implementation of navigation.
+
+## 78. Passing Recipe Data with Property Binding
+
+As above - moved recipe list implementation into the list component, and used property binding to display the details in the recipe item component.
+
+## 79. Passing Data with Event and Property Binding combined
+
+Passing the results of clicking on a recipe in the list up 2 levels to the details component. 
+
+## 80. Allowing the User to Add Ingredients to the Shopping List
+
+Used @ViewChild to bind properties to view references (#blahInput attribute on an input element) of type ElementRef.
+
+# Section 7 - Directives Deep Dive
+
+## 81. Intro
+
+Attribute directives vs Structural directives
+
+Structural directives prefixed with * and affect existence of the element. Attribute directives only affect the element they exist on.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Section 24 - NGRX
+
+## 302. Intro
+
+Application state
+
+The state of the data in your components is lost when the application refreshes in a traditional angular application.
+
+NGRX provides a Store which contains the application state. Components and services receive state updates from the store. 
+
+They can then update the store via dispatching Actions.
+
+Actions are sent to Reducers (functions) that take an applications current state and payload, and immutably update the state.
+
+> Lazy loading - only adds things to your store once particular modules are loaded.
+
+
+## 303. Getting started with reducers
+
+Reducer functions are triggered whenever an action is dispatched.
+
+`npm install --save @ngrx/store`
+
+Creating a reducer - `shopping-list.reducer.ts`
+
+They take in 2 things - the current State of the app and an action (of type Action)
+
+You can define a default state in the function's param by providing a default value.
+
+The function should return the updated state of the application. Even if you simply returned the input param of the current state as the respone, NGRX would create a new instance of it as the new state. 
+
+Actions themselves by default don't have a payload, only a type. You need to create your own Action types in order to define a payload.
+
+A switch statement is usually used to handle an action by looking at it's `type` param, which is set when dispatching the action. It's typically a String. Defining it as a constant in the reducer (for export to other components that may create the actions) is a good practice.
+
+Array spread operator is liberally used to copy the existing state (for immutability).
+
+`
+export const ADD_INGREDIENT = 'ADD_INGREDIENT';
+
+const initialState = {
+    ingredients: [
+        new Ingredient('Apples', 5),
+        new Ingredient('Tomatoes', 10),
+    ]
+}
+export function shoppingListReducer(state = initialState, action: Action) {
+    switch (action.type) {
+        case ADD_INGREDIENT:
+            return {
+                ...state,
+                ingredients: [...state.ingredients, action.??? todo]
+            }
+    }
+    
+    return state
+}`
+
+
+## 304. Adding Actions
+
+Create a file that contains actions (could also place it in the reducers file if you'd like)
+
+`shopping-list.actions.ts`
+
+Move the files into a subfolder called `store` to keep the ngrx files together.
+
+Create a class which implements the Action class / interface, and define it's type and payload:
+
+`import { Action } from '@ngrx/store';
+
+export const ADD_INGREDIENT = 'ADD_INGREDIENT';
+
+export class AddIngredient implements Action {
+    readonly type = ADD_INGREDIENT;
+    payload: Ingredient;
+}
+
+export type ShoppingListActions = AddIngredient;
+`
+
+and export the actions in the last line of the class, for use in the reducer.
+
+## 305. Finishing the first reducer
+
+Update the reducer to use the typed references in the action class.
+
+`
+import * as ShoppingListActions from './shopping-list.actions';
+
+const initialState = {
+    ingredients: [
+        new Ingredient('Apples', 5),
+        new Ingredient('Tomatoes', 10),
+    ]
+}
+
+export function shoppingListReducer(state = initialState, action: ShoppingListActions.ShoppingListActions) {
+    switch (action.type) {
+        case ShoppingListActions.ADD_INGREDIENT:
+            return {
+                ...state,
+                ingredients: [...state.ingredients, action.payload]
+            }
+        default:
+            return state;
+    }
+    
+}`
+
+Next step is to register the reducer and store in the app, and adding the ability to actually dispatch an action.
+
+## 306. Registering the Application Store
+
+
+Occurs in the app module.
+
+forRoot - main application, eagerly loaded modules (not lazily loaded ones)
+    - takes an argument, a JS object with all your reducers, and setup a store, register the reducers provided, and setup their initial state.
+
+>app.module.ts
+
+`
+import { StoreModule } from '@ngrx/store';
+
+...
+
+imports: [
+    ...,
+    StoreModule.forRoot({shoppingList: shoppingListReducer})
+]
+`
+
+## 307. Selecting data from State
+
+Example of fetching store data from a component - important thing to note is that when you do this, you receive an Observable, not the type that you are storing. As such it makes the usage a little more complex.
+
+Inject the Store service into the component, providing the generic type (seems to match the object listed in the StoreModule.forRoot() argument - shoppingList, and then the field in the state in the reducer - in this case ingredients) as well for the data you care about():
+
+>shopping-list.component.ts
+
+`constructor(private store: Store<{shoppingList: {ingredients: Ingredient[]}}>) {}`
+
+and then use it as follows:
+
+`
+shoppingListState: Observable<{ingredients: Ingredient[]}>;
+
+..
+
+
+this.shoppingListState = this.store.select('shoppingList');
+`
+
+the select seems to match the thing listed in the StoreModule.forRoot() argument, which is the same as the first layer in the Store generic object as well.
+
+and use it in a template as follows (becuase it's an observable) with the `async` pipe:
+
+`<div *ngFor="let ingredient of (shoppingListState | async).ingredients;">`
+
+## 308. Dispatch Actions
+
+Autowire the store into the component that adds an ingredient:
+
+`constructor(private store: Store<{shoppingList: {ingredients: Ingredient[]}}>)`
+
+Then use the dispatch method on the Store to send an Action with a payload:
+
+`import * as ShoppingListActions from '../store/shopping-list-actions'`
+
+... and assuming that the AddIngredient action has a constructor arg called `payload` of type `Ingredient`
+
+`this.store.dispatch(new ShoppingListActions.AddIngredient(newIngredient))`
+
+
+## 309. Adding more actions
+
+Add a new constant to the shopping-list.actions file - use the UNION operator to add it to the exported bundle:
+
+`export type ShoppingListActions = AddIngredient | AddIngredients;`
+
+Add it to the reducer:
+
+`case ShoppingListActions.ADD_INGREDIENTS:
+  return {
+    ...state,
+    ingredients: [...state.ingredients, ...action.payload]
+  };`
+  
+Mentions replacing the existing service class' implementation with the ngrx store dispatch version, but then moves it all the way into the component. Not sure how i feel about that yet, seems to bring the implementation detail into the component, and all of your components would need to change if the data store implementation changes...
+
+## 310. Dispatching update and delete actions
+
+Update - payload is an index of an item plus the updated item. A little trickier to handle.
+
+1. get the ingredient to handle
+2. spread it's properties, then on top spread the properties of the updated ingredient
+3. spread the existing array of ingredients into a new object
+4. set the value of the ingredient at the index we are updating, to the newly created object representing that ingredient
+5. return the new array in the state returned from the method.
+
+
+`    case ShoppingListActions.UPDATE_INGREDIENT:
+      const ingredient = state.ingredients[action.payload.index];
+      const updatedIngredient = {
+        ...ingredient,
+        ...action.payload.ingredient
+      };
+      const ingredients = [...state.ingredients];
+      ingredients[action.payload.index] = updatedIngredient;
+
+
+      return {
+        ...state,
+        ingredients: ingredients
+      };
+`
+
+and deleting - use the splice ES6 array method:
+
+    case ShoppingListActions.DELETE_INGREDIENT:
+      const updatedList = [...state.ingredients];
+      updatedList.splice(action.payload, 1);
+      return {
+        ...state,
+        ingredients: updatedList
+      };
+      
+      
+## 311. Expanding app state
+
+Keeping track in the Store of which ingredient is currently being edited.
+
+
+First step - export an interface representing the state:
+
+>shopping-list.reducers
+
+`export interface State {
+    ingredients: Ingredient[];
+    editedIngredient: Ingredient;
+    editedIngredientIndex: number;
+}`
+
+Overall appstate is then represented in the same file:
+
+`export interface AppState {
+    shoppingList: State
+}`
+
+and the state itself has the new properties defined and it's type added:
+
+`
+const initialState: State = {
+    ingredients: [
+        new Ingredient('Apples', 5);
+        new Ingredient('Tomatoes', 10);
+    ],
+    editedIngredient: null,
+    editedIngredientIndex: -1
+}
+`
+We can also now use these interfaces in place of any reference to the generic objects that we used before.
+
+
+`import * as fromShoppingList from '../store/shopping-list.reducer';`
+
+
+`constructor(private slService: ShoppingListService, private store: Store<fromShoppingList.AppState>) { }`
+
+## 312. Editing the shopping list via NGRX
+
+The beginning of Editing should be an action.
+
+Create an action. and a reducer function for it (spreading the editing ingredient to get a copy of it):
+
+    case ShoppingListActions.START_EDIT:
+      const editedIngredient = {...state.ingredients[action.payload]};
+      return {
+        ...state,
+        editedIngredient: editedIngredient,
+        editedIngredientIndex: action.payload
+      };
+      
+Dispatch an action as per usual.
+
+Listening to the action, make sure your component has a `subscription: Subscription;` defined, and use the `store.select('sliceName').subsribe()` method to update relevant data as it flows into the component:
+
+> shopping-edit.component.ts
+
+  `ngOnInit() {
+    this.subscription = this.store.select('shoppingList')
+      .subscribe(
+        data => {
+          if (data.editedIngredientIndex > -1) {
+            this.editedItem = data.editedIngredient;
+            this.editMode = true;
+            this.slForm.setValue({
+              name: this.editedItem.name,
+              amount: this.editedItem.amount
+            })
+          } else {
+            this.editMode = false;
+          }
+        }
+      );
+    }`
+      
+and make sure the component implements OnDestroy, so that the component can manage it's own subscription:
+
+`
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
+  }
+`
+## 313. Managing all relevant state (ie edit modes)
+
+We require a STOP_EDIT action that can reset the active editing properties of the store whenever we navigate away from editing an ingredient.
+
+In the edit component, in it's `ngOnDestroy()` method:
+
+`
+  ngOnDestroy() {
+    this.store.dispatch(new ShoppingListActions.StopEdit());
+    this.subscription.unsubscribe();
+  }`
+  
+Also added the same logic that is in StopEdit to the update and delete actions.
+
+
+## 314. Authentication and Side Effects - Introduction
+
+Async operations (ie. HTTP / REST calls) can't be handled directly in reducers, as they need to operate synchronously. 
+
+
+## 315. Setting up the Auth store files
+
+Creating a new reducers file for the auth part of the app - means the AppState interface needs to be updated and taken out of the shopping list reducers file.
+
+This can be done in a /store dir in the root of the app dir. It can be thought of as the global app-wide reducer.
+
+New file - `store/app.reducers.ts`
+
+
+`import * as fromShoppingList from '../shopping-list/store/shopping-list.reducer';
+import * as fromAuth from '../auth/store/auth.reducers';
+
+export interface AppState {
+  shoppingList: fromShoppingList.State,
+  auth: fromAuth.State;
+}
+`
+
+## 316. The Reducer
+
+Just created all the auth actions - login, logout, signup, set token.
+
+## 317. Adding reducer logic and actions
+
+Basically just implemented the following:
+
+`import * as AuthActions from './auth.actions';
+
+export interface State {
+  token: string,
+  authenticated: boolean
+}
+
+const initialState: State = {
+  token: null,
+  authenticated: false
+};
+
+export function authReducer(state = initialState, action: AuthActions.AuthActions) {
+  switch (action.type) {
+    case AuthActions.SIGNUP:
+    case AuthActions.SIGNIN:
+      return {
+        ...state,
+        authenticated: true
+      };
+    case AuthActions.LOGOUT:
+      return {
+        ...state,
+        token: null,
+        authenticated: false
+      };
+    default:
+      return state;
+  }
+}
+`
+
+## 318. Adjusting the app module setup
+
+Bundle the reducers throughout the app in the actual app.reducers.ts file, as opposed to adding them to the root app module.
+
+AppReducerMap<> is used to representthe various reducers for your app keyed to their... key
+
+> app.reducers.ts
+
+`import * as fromShoppingList from '../shopping-list/store/shopping-list.reducer';
+import * as fromAuth from '../auth/store/auth.reducers';
+import {ActionReducerMap} from '@ngrx/store';
+
+export interface AppState {
+  shoppingList: fromShoppingList.State,
+  auth: fromAuth.State;
+}
+
+export const reducers: ActionReducerMap<AppState> = {
+  shoppingList: fromShoppingList.shoppingListReducer,
+  auth: fromAuth.authReducer
+};
+`
+
+Then used in the root app module:
+
+`import {reducers} from './store/app.reducers';`
+
+...
+
+`StoreModule.forRoot(reducers)`
+
