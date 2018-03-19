@@ -1211,3 +1211,174 @@ Then used in the root app module:
 
 `StoreModule.forRoot(reducers)`
 
+## 319. Using Authentication
+
+Directly accessing services from a template can cause issues when using AOT compilation.
+
+Accessing state changes from a template:
+
+Given the following component (just a chunk of it to demonstrate the ngrx changes):
+
+`import * as fromApp from '../../store/app.reducers';
+import * as fromAuth from '../../auth/store/auth.reducers';
+import {Observable} from 'rxjs/Observable';
+
+@Component({
+  selector: 'app-header',
+  templateUrl: './header.component.html'
+})
+export class HeaderComponent implements OnInit {
+
+  authenticatedState: Observable<fromAuth.State>;
+
+  ngOnInit(): void {
+    this.authenticatedState = this.store.select('auth');
+  }
+  constructor(private dataStorageService: DataStorageService,
+              private authService: AuthService,
+              private store: Store<fromApp.AppState>) {
+  }`
+
+We can do the following in the header template:
+
+`<ng-template [ngIf]="!(authenticatedState | async).authenticated">`
+
+Store is the app-wide state, the observable can be a slice of it.
+
+## 320. Dispatch actions
+
+Nothing new
+
+## 321. Getting state access in the Http Interceptor
+
+
+Use of a [switchmap](https://www.learnrxjs.io/operators/transformation/switchmap.html) - observable returned from within an observable? Stop the auto-wrap into a new observable.
+
+Need to import it apparently:
+
+`import 'rxjs/add/operator/switchMap'`
+
+`@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+  constructor(private store: Store<fromApp.AppState>) {}
+
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    console.log('Intercepted!', req);
+
+    return this.store.select('auth')
+      .switchMap((authState: fromAuth.State) => {
+        const copiedReq = req.clone({params: req.params.set('auth', authState.token)});
+        return next.handle(copiedReq);
+      });
+  }
+}`
+
+## 322. Handling the auth token
+
+We were not ever setting the token upon login as we hadn't handled the SET_TOKEN action in the auth reducer yet.
+
+`case AuthActions.SET_TOKEN:
+  return {
+    ...state,
+    token: action.payload
+  };`
+  
+## 323. Only react to actions once using take(1)
+
+The switchMap code in step 321 is executed each time the auth store changes due to the ongoing subscription that is setup there in the return statement.
+
+The fix is to use .take(1) after the select statement:
+
+`
+    return this.store.select('auth')
+      .take(1)
+      .switchMap((authState: fromAuth.State) => {
+        const copiedReq = req.clone({params: req.params.set('auth', authState.token)});
+        return next.handle(copiedReq);
+      });`
+      
+This subscribes for the first response only. 
+
+[Race conditions??](https://blog.nrwl.io/rxjs-advanced-techniques-testing-race-conditions-using-rxjs-marbles-53e7e789fba5)
+
+## 324. A closer look at effects
+
+Async tasks / side effects related to dispatching actions, but not resulting in a change of state.
+
+`npm install --save @ngrx/effects`
+
+Then create a new file in the auth dir
+
+>auth.effects.ts
+
+`import {Effect} from '@ngrx/effects';
+
+@Injectable()
+export class AuthEffects {
+
+  @Effect()
+  authSignup
+  
+  constructor(private actions$: Actions) { }
+}
+`
+
+The `@Effect` decorator marks a field as being managed by ngrx effects.
+
+## 325. Auth effects and actions
+
+Need to anotate the class with `@Injectable`
+Add the `EffectsModule` to the `app.module` and register them:
+
+>app.module.ts
+
+`imports: [
+    EffecstModule.forRoot([AuthEffects])
+    ]`
+
+param suffix of $, ie. actions$ means it's an observable.
+
+We then autowire the actions into the effects class.
+
+
+## 326. Effects - how they work
+
+Assign a value to your decorated effect, and limit it to a certain action type:
+
+`
+@Effect()
+authSignup = this.actions$
+    .ofType();
+`
+
+Need to create new actions to represent attempting/doing a signup request:
+
+> auth.actions.ts
+
+`export cost TRY_SIGNUP = 'TRY_SIGNUP'`
+
+`
+export class TrySignup implements Action {
+    readonly type = TRY_SIGNUP;
+    
+    constructor(public payload: {username: string, password: string}) {}
+}
+`
+
+No need for a reducer as we only care about it in effects.
+
+`
+@Effect()
+authSignup = this.actions$
+    .ofType(AuthActions.TRY_SIGNUP);
+`
+
+Anything you chain-on after that method is only called when an event matching that takes place.
+
+Triggering it:
+
+`this.store.dispatch(new TrySignup({username: email, password: password}));
+
+## 327. `Adding auth signup
+
+Same as reducers except we don't change application state directly.
