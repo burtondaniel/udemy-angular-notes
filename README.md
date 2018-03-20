@@ -1343,6 +1343,8 @@ We then autowire the actions into the effects class.
 
 ## 326. Effects - how they work
 
+Effects - side effects that dont affect state. ie. start login... side effect is to attempt to login, and create login success or fail events on response.
+
 Assign a value to your decorated effect, and limit it to a certain action type:
 
 `
@@ -1377,8 +1379,49 @@ Anything you chain-on after that method is only called when an event matching th
 
 Triggering it:
 
-`this.store.dispatch(new TrySignup({username: email, password: password}));
+`this.store.dispatch(new TrySignup({username: email, password: password}));`
 
-## 327. `Adding auth signup
+## 327. Adding auth signup
 
-Same as reducers except we don't change application state directly.
+Same as reducers except we don't change application state directly. Expect to return an Observable.
+
+get payload in an effect (map will wrap in observable):
+
+`
+import 'rxjs/add/operator/map'
+import 'rxjs/add/operator/switchMap'
+
+@Effect()
+  authSignup = this.actions$
+    .ofType(AuthActions.TRY_SIGNUP)
+    .map((action: AuthActions.TrySignup) => {
+      return action.payload;
+    })
+    .switchMap((authData: {username: string, password: string}) => {
+      return fromPromise(firebase.auth().createUserWithEmailAndPassword(authData.username, authData.password));
+    })
+    .switchMap(() => {
+      return fromPromise(firebase.auth().currentUser.getIdToken());
+    })
+    .mergeMap((token: string) => {
+      return [
+        {
+          type: AuthActions.SIGNUP
+        },
+        {
+          type: AuthActions.SET_TOKEN,
+          payload: token
+        }
+      ]
+    });
+`
+
+Method to turn promise into observable:
+
+`import { fromPromise } from 'rxjs/observable/fromPromise;`
+
+Also mergeMap - output 2 actions in observables
+
+At the en of effect chain you should dispatch new actions.
+
+Can set `@Effect({dispatch: false})` in the effect decorator if you don't want to do that.
