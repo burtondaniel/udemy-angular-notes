@@ -1425,3 +1425,71 @@ Also mergeMap - output 2 actions in observables
 At the en of effect chain you should dispatch new actions.
 
 Can set `@Effect({dispatch: false})` in the effect decorator if you don't want to do that.
+
+## 328. Adding Auth Signin
+
+mergemap
+switchmap
+
+???
+
+Added another effect for signin.
+
+## 329. Navigation as a side effect
+
+Inject router into effects class;
+
+`private router: Router`
+
+then add it in near the end:
+
+`.mergeMap((token: string) => {
+    this.router.navigate(['/]');
+      return [
+        {
+          type: AuthActions.SIGNUP
+        },
+        {
+          type: AuthActions.SET_TOKEN,
+          payload: token
+        }
+      ]
+    });
+`
+
+## 330. Handling logout via ngrx
+
+Dispatched logout action instead of directly calling authservice.logout
+
+
+## 331. Additional fixes
+
+Inifite looks called with store.select() in guards - potentially other places too. Fix is to do take(1)
+
+## 332. Redirecting Upon Logout
+
+New effect that listens for logout event, and call .do() - allows you to execute code but continuing the 'stream' 
+
+import 'rxjs/add/operators/do'
+
+`.ofType(AuthActions.LOGOUT)
+.do(() => {
+    this.router.navigate(['/'])
+})`
+
+## 333. What's next
+
+Discussion of extent of NGRX use. Form state (ie. f.valid) is localized to a single component (ie. only handling local UI state) - when you have things like this dont bother using ngrx for it.
+
+## 334. Router store package
+
+Changes in route as state changes (ie changing pages) - can be listened to via `@ngrx/router-store`
+
+>app.module.ts 
+
+Add `StoreRouterConnectingModule` the the imports array.
+
+## 335. Store devtools
+
+
+
