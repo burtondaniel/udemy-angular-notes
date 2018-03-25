@@ -741,29 +741,469 @@ Can access an element that's projected inside of an ng-content block. - otherwis
 
 # Section 6 - Components & Data Binding
 
-## 77. Adding Navigation with Event Binding and ngIf
+## 78. Adding Navigation with Event Binding and ngIf
 
 Uses same approach as in the assignment to do a hacky implementation of navigation.
 
-## 78. Passing Recipe Data with Property Binding
+## 79. Passing Recipe Data with Property Binding
 
 As above - moved recipe list implementation into the list component, and used property binding to display the details in the recipe item component.
 
-## 79. Passing Data with Event and Property Binding combined
+## 80. Passing Data with Event and Property Binding combined
 
 Passing the results of clicking on a recipe in the list up 2 levels to the details component. 
 
-## 80. Allowing the User to Add Ingredients to the Shopping List
+## 81. Allowing the User to Add Ingredients to the Shopping List
 
 Used @ViewChild to bind properties to view references (#blahInput attribute on an input element) of type ElementRef.
 
 # Section 7 - Directives Deep Dive
 
-## 81. Intro
+## 82. Intro
 
 Attribute directives vs Structural directives
 
 Structural directives prefixed with * and affect existence of the element. Attribute directives only affect the element they exist on.
+
+## 83. ngFor and ngIf recap
+
+ngFor: 
+
+`<div *ngFor="let number of numbers">
+{{ number }}
+</div>`
+
+ngIf:
+
+`<div *ngId="!onlyOdd">
+...
+</div>`
+
+Nothing new here - just a note that you can't have two structural directives on the one element.
+
+## 84. ngClass and ngStyle recap
+
+ngClass:
+
+`<li [ngClass]="{odd: true}"></li>`
+
+ngStyle:
+
+`<li [ngStyle]="{backgroundColor: 'yellow'}"></li>`
+
+## 85. Creating a basic attribute directive
+
+Creating a directive to highlight an element on hover, using an attribute: 'appBasicHighlight'
+
+> basic-highlight.directive.ts
+
+`@Directive({
+    selector: '[appBasicHighlight]' // attribute selector
+})
+export class BasicHighlightDirective {
+    constructor(private elementRef: ElementRef) {
+    }
+    
+    ngOnInit() {
+        this.elementRef.nativeElement.style.backgroundColor = 'green';
+    }
+}`
+
+Injection provides a reference to the element the directive is on - of type ElementRef.
+
+From it you can access it's  `nativeElement` property.
+
+Can use OnInit to initialise data.
+
+To then use it, you need to add the class in the `declarations` array in the module the directive is in.
+
+## 86. Using the renderer to build a better attribute directive
+
+Accessing elements directly like that is not advised - requires rendering in a browser, so there are other ways of doing this.
+
+Injecting a renderer.
+
+type: Renderer2 from @angular/core
+
+Gives you access to set certain render properties.
+
+`this.renderer.setStyle(this.elementRef.nativeElement, 'background-color', 'blue', false, false)`
+
+Args being:
+
+element to change 
+css style attribute
+attribute value
+flags (options) - optional
+
+This is a better approach because - angular isn't limited to running in the browser (ie. works with service workers, that doesnt have access to the DOM). 
+
+## 88. Using HostListener to listen to host events
+
+Reacting to events occuring in the element the directive sits on.
+
+@HostListener decorator can assist with this. Takes a string arg of the event to listen for.
+
+`@HostListener('mouseenter') mouseover(eventData: Event) {
+    this.renderer.setStyle(this.elementRef.nativeElement, 'background-color', 'blue', false, false);
+}
+
+@HostListener('mouseleave') mouseleave(eventData: Event) {
+    this.renderer.setStyle(this.elementRef.nativeElement, 'background-color', 'transparent', false, false);
+}`
+
+The directive will now react to the events occuring via the HostListener.
+
+## 89. Using HostBinding to listen to host properties
+
+Another decorator - `@HostBinding`
+
+Can define which property of the host element we want to bind to.
+
+`@HostBinding('style.backgroundColor') backgroundColor: string = 'transparent';`
+
+On the element which this directive sits, allow us access to the given property.
+
+Can then do:
+
+`this.backgroundColor = 'blue';` 
+
+instead of using the renderer.
+
+## 90. Binding to directive properties
+
+Using custom property binding - ie. allowing input values
+
+`@Input() defaultColor: string = 'transparent';
+@Input() highlightColor: string = 'blue';
+@HostBinding('style.backgroundColor') backgroundColor: string;
+
+ngOnInit() {
+   this.backgroundColor = this.defaultColor;
+}`
+
+You then provide the input as follows
+
+`<p appBetterHighlight [defaultColor]="'yellow'" [highlightColor]="'red'">`
+
+Angular looks for directives with inputs matching the property binding, if it doesnt find a match it falls through looking for it on the element (p in this case)
+
+Also supports use of Aliases in the @Input  - if you set the alias to the same as the selector, you can then do the following:
+
+[appBetterHighlight]="'red'"
+
+## 91. What happens behind the scenes on structural directives
+
+Discussion of the `*` char in front of structural directives - it's simply used so that angular can detect them in the dom - and wrap the element in an ng-template
+
+```<ng-template></ng-template>``` 
+
+This is used to create elements that only exist for the purpose of angular
+
+ie:
+
+```<div *ngIf="!onlyOdd"></div>```
+
+is translated to
+
+`<ng-template [ngIf]="!onlyOdd">
+    <div></div>
+</ng-template>`
+
+## 92. Building a structural directive
+
+creating the opposite of the ngIf directive:
+
+`ng g d unless`
+
+Provide a property with a setter so that you can hook in to changes to the property:
+
+`@Input() set appUnless(condition: boolean) {
+    if (!condition) {
+        this.vcRef.createEmbeddedView(this.templateRef);
+    } else {
+        this.vcRef.clear()
+    }
+}
+
+constructor(private templateRef: TemplateRef<any>, private viewContainerRef: ViewContainerRef) {
+
+}
+`
+TemplateRef - reference to the template
+ViewContainerRef - place where we put the directive in a DOM
+
+vcRef.clear() - remove from the dom
+
+```
+<div *appUnless="onlyOdd"></div>
+```
+Input name has to match the directive selector...
+
+## 93. Understanding ngSwitch
+
+Using it:
+
+`<div [ngSwitch]="value">
+    <p *ngSwitchCase="5"></p>
+    <p *ngSwitchCase="10"></p>
+    <p *ngSwitchCase="20"></p>
+    <p *ngSwitchDefault="100"></p>
+</div>`
+
+## 94. Building and using a toggle dropdown directive
+
+Simply adds / removes a class to a div.
+
+Can bind to a class:
+
+`@HostBinding('class.open') isOpen = false;`
+
+Setting it to true will add the class, false removes it.
+
+
+`import {Directive, HostBinding, HostListener} from '@angular/core';
+
+@Directive({
+  selector: '[appDropdown]'
+})
+export class DropdownDirective {
+
+  @HostBinding('class.open') isOpen = false;
+
+  @HostListener('click')
+  click(eventData: Event) {
+    this.isOpen = !this.isOpen;
+  }
+
+  constructor() {
+  }
+
+}
+`
+
+
+
+
+
+
+
+
+# Section 11 - Modules + routing
+
+## 112. Intro
+
+Adding URL binding to an app.
+
+
+## 113. Why do we need a router
+
+The need to have pages specifically for site functions - ie. admin page, server list page, etc.
+
+Can register routers - url paths to these components - using the angular router
+
+## 115. Setting up and loading routes
+
+Currently, the app loads all components in the one module.
+
+Routes are a core part of the app - as there's only one active URL at a time. Hence, the app module is the best place to begin informing Angular about the routes you want to have defined.
+
+You define a route, and then an 'action' to perform at that route. Generally you use components here.
+
+> app.module.ts
+
+`
+const routes: Routes = [
+  { path: '', component: HomeComponent },
+  { path: 'users', component: UsersComponent },
+  { path: 'servers', component: ServersComponent }
+];`
+
+and then
+
+`
+    import: [
+        ...
+        RouterModule.forRoot(routes)
+    ]
+`
+
+You then need a __router outlet__ in the bootstrapped component template
+
+It tells Angular where to render the component of the currently selected route.
+
+## 116. Navigating with Router Links
+
+Initially says you can use a href="/users" style links to point to router paths. 
+
+This works, but it restarts the app on each click, and application state will be lost.
+
+Can use the angular directive called `routerLink` instead.
+
+`<a routerLink="/users">`
+
+Can also use property binding to use arrays as args:
+
+`<a [routerLink]="['/users']">`
+
+Router link - 
+
+1. catches link clicks
+2. prevents default
+3. Determines which route to load
+
+## 117. Understanding navigation paths
+
+Use of "/servers" vs "servers" in routerLink args.
+
+Absolute vs Relative paths.
+
+They are relative to the COMPONENTS themselves and where they are loaded in the app.
+
+app.component.ts is at the root level - so thats the context of its urls
+
+ServerComponent is only loaded when at the /servers context path. As such any relative links are below that context level of the URL path.
+
+Can also use the `./` and `../` sequences as part of the paths.
+
+## 118. styling active router links
+
+`routerActiveLink='active'`
+
+a directive that allows you to add classes based on the active route.
+
+The directive analyses your current URL path, and also which links in the dom beneath that element contain links to the active path. If it contains the path, it will add the class that is the argument.
+
+the directive can have config provided as follows:
+
+`[routerLinkActiveOptions]="{
+    exact: true
+}"`
+
+This is used to check for exact matches, as opposed to a contains match.
+
+## 119. Navigating Programmatically
+
+Allows you to perform navigation after other logic in a component.
+
+Inject the router into a component, and then:
+
+`this.router.navigate(['/users']);`
+
+Routes defined as an array of the single elements of the desired url.
+
+## 120. Using relative paths in programmatic navigation
+
+Unlike routerLink, the navigate method doesn't know on which route you're currently on.
+
+We can give context via relativeTo option as follows:
+
+Getting a hook to the route which loaded this component - the ActivatedRoute: 
+
+`constructor(private route: ActivatedRoute){}`
+
+and then
+
+`this.router.navigate(['/users'], {relativeTo: this.route});`
+
+## 121. Passing parameters to routes
+
+`
+{ path: 'users/:id', component: UserComponent}
+`
+
+Colon prefix means its a dynamic part of the url (ie. parameter)
+
+The parameter is then passed to the component.
+
+
+## 122. Fetching route parameters 
+
+Can get the parameters from the ActivatedRoute class - it has a param called snapshot which can be referred to.
+
+`constructor(private route: ActivatedRoute) {}`
+
+then in ngOnInit:
+
+`
+this.user = {
+    id: this.route.snapshot.params['id']
+}
+`
+
+## 123. Fetching route parameters reactively
+
+Snapshot data only loads in the example above if we havent been on the component before. ngOnInit isn't called again.
+
+We need to subscribe to the params parameter on the ActivatedRoute.
+
+`this.route.params` => returns an Observable.
+
+You can subscribe to the changes in the params:
+
+`
+ngOnInit() {
+    this.user = {
+      id: 0,
+      name: ''
+    }
+    this.route.params.subscribe(
+      (params: Params) => {
+        this.user.id = params['id'];
+        this.user.name = params['name'];
+      }
+    );
+  }
+`
+
+## 124. An important note about route observables
+
+Angular cleans up the route observable subscriptions for you when a component is destroyed.
+
+Can implement the OnDestroy lifecycle hook to unsubscribe from the subscription manually.
+
+## 125. Passing query parameters and fragments
+
+URL query params
+
+Given this:
+
+`{ path: 'servers/:id/edit', component: EditServerComponent }`
+
+and generating the link in a template:
+
+`[routerLink]="['/servers', 5, 'edit']"
+[queryParams]="{ allowEdit: '1' }"
+fragment="loading"`
+
+would generate:
+
+`/servers/5/edit?allowEdit=1#loading`
+
+and programmatically:
+
+`this.router.navigate(['/servers', id, 'edit], {queryParams: {allowEdit: '1', fragment: 'loading'}})`
+
+## 126. Retrieving query parameters and fragments
+
+Using the activated route - can use the snapshot or again the observables
+
+`this.route.snapshot.queryParams;
+this.route.snapshot.fragment;`
+
+or
+
+`this.route.queryParams.subscribe();
+this.route.fragment.subscribe();`
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1491,5 +1931,20 @@ Add `StoreRouterConnectingModule` the the imports array.
 
 ## 335. Store devtools
 
+Discussed how to setup the ngrx store dev tools. Requires redux chrome plugin.
+
+## 336. Lazy loading + dynamic injection
+
+Try using this in the MBO app:
+
+`RouterModule.forRoot(routes, {preloadingStrategy: PreloadAllModules})`
+
+Discussion around how lazily-loaded modules load their store data into the existing overall app state.
+
+In the module for the feature:
+
+`imports: [
+    StoreModule.forFeature('featureState', featureReducer)
+    ]`
 
 
