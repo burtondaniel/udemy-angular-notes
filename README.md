@@ -1196,6 +1196,373 @@ or
 `this.route.queryParams.subscribe();
 this.route.fragment.subscribe();`
 
+## 127. Practice and some common gotchas
+
+params are always strings. if you pass them to a method that expects a number, you need to convert them to numbers. Put a + in front of the var to turn it into a number - or use `parseInt(string, 10);`
+
+## 128. Setting up nested / child routes
+
+can have child routes:
+
+`{path: 'servers', component: ServersComponent, children: [
+    {path: ':id', component: ServerComponent },
+    {path: ':id/edit', component: EditServerComponent }
+]}`
+
+This requires a new `<router-outlet>` in the parent component, which is where the child will be rendered. 
+
+## 130. Using query params
+
+Loss of query params when navigating to child routes
+
+## 131. Configuring the handling of query parameters
+
+Pass another proeprty to the router.navigate method.
+
+`this.router.navigate(['edit'], { queryParamsHandling: 'preserve'})`
+
+other type is called `merge`, which allows you to combine with ones youre adding.
+
+## 132. Redirecting and Wildcard routes
+
+Error handling in routes (routes that dont exist - 404) by redirection
+
+`{ path: 'not-found', component: PageNotFoundComponent },
+{ path: 'something', redirectTo: '/not-found' }`
+
+ /something will redirect to /not-found
+ 
+ Use wildcard route path to send all matches 
+ 
+ `{ path: '**', redirectTo: '/not-found' }`
+ 
+ Location matters - must be the last route defined or it'll override other defined route paths.
+
+## 133. Redirection path matching
+
+By default, angular performs path matching by prefix. 
+
+ie, the path '' would match every url, as every url is prefixed with nothing.
+
+You can change this behaviour by using `pathMatch: 'full'` in the route definition.
+
+## 134. Outsourcing the route configuration
+
+Create an app-routing module to house complex route definitions.
+
+`const appRoutes: Routes = {
+    {path: '', component: HomeComponent}
+}
+
+@NgModule({
+    imports: [
+        RouterModule.forRoot(appRoutes)
+    ],
+    exports: [
+        RouterModule
+    ]
+})
+export class AppRoutingModule {
+    
+}`
+
+Exports - tells angular from this module if i were to add this module to the imports of another module, what should be accessible in that context?
+
+We export the RouterModule as it's what we've configured in this class.
+
+Then import the AppRoutingModule in your AppModule.
+
+## 135. An introduction to guards
+
+Code executed before a route is loaded or when you want to leave a route.
+
+One example of a guard is the canActivate guard.
+
+## 136. Protecting routes with canActivate
+
+Created a class called AuthGuard = implements CanActivate interface.
+
+This interface forces you to have a canActivate method in the class. The method receives 2 parameters:
+
+`canActivate(route: ActivatedRouteSnapshot,
+state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean`
+
+Can return sync or async responses hence the return types.
+
+Defers auth logic to a new class called AuthService which performs login, logout, and tells you whether the user is logged in or not.
+
+in the canACtivate method, it checks if the user is authenticated, if so it returns true, otherwise it navigates away to the root route. This cancels the original navigation - up to you whether you want to return false afterwards or not.
+
+You can then assign the guard to routes by:
+
+`{ path: 'servers', canActivate: [AuthGuard], component: blah }`
+
+## 137. Protecting Child Routes with canActivateChild
+
+Other interface - `CanActivateChild` - which forces you to implement a method called canActivateChild with the same parameters as canActivate.
+
+You then use this hook in the parent route definition.
+
+`{ path: 'servers', canActivateChild: [AuthGuard] }`
+
+## 138. Using a fake auth service
+
+Just hooked up a login / logout button to the fake auth service.
+
+## 139. Controlling navigation with canDeactivate
+
+Lets you know whether you can leave a route or not.
+
+ie. if you are editing a server, don't let the user leave the route unless they are finished.
+
+Created a new service (thats actually an interface...) called 
+`can-deactive-guard.service.ts`
+
+Inside it is an interface: 
+`export interface CanComponentDeactivate` that has a method: 
+
+`canDeactivate: () => Observable<boolean> | Promise<boolean> | boolean;`
+
+`export class CanDeactivateGuard implements CanDeactivate<CanComponentDeactivate> {
+    canDeactivate(component: CanComponentDeactivate,
+        currentRoute: ActivatedRouteSnapshot,
+        currentState: RouterStateSnapshot,
+        nextState?: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
+        return component.canDeactivate();
+    }
+}`
+
+We then implement the interface in our component and add the guard to our path:
+
+>edit-server.component.ts
+
+`canDeactivate(): Observable<boolean> | Promise<boolean> | boolean {
+    if (!this.allowEdit) {
+        return true;
+    }
+    
+    if ((this.serverName !== this.server.name || this.serverStatus !== this.server.status) && !this.changesSaved) { 
+        return confirm('Do you want to discard the changes?');
+    } else {
+        return true;
+    }
+}`
+
+
+>app-routing.module.ts
+
+`{ path: ':id/edit', component: EditServerComponent, canDeactivate: [CanDeactivateGuard] }`
+
+You would now be prompted with the confirm dialog if you edit a server and attempt to navigate away without saving.
+
+
+## 140. Passing static data to a route
+
+When routes depend on data, they can be provided by another type of guard.
+
+Example: `ErrorPageComponent`
+
+It will display an errorMessage that will be provided to it at runtime.
+
+
+>app-routing.module
+
+`{ path: 'not-found', component: ErrorPageComponent, data: {
+    message: 'Page not found!'
+}}`
+
+
+The data field allows you to pass data to the component via the route.
+
+Then, in the ErrorPageComponent:
+
+`ngOnInit() {
+    this.errorMessage = this.route.snapshot.data['message'];
+    // or
+    this.route.data.subscribe(
+        (data:Data) => {
+            this.errorMessage = data['message'];
+        }
+    )
+}`
+
+## 141. Resolving dynamic data with the resolve guard
+
+Need a 'resolver' to source data dynamically when a route is loaded. There is a Resolve interface provided in the angular router package.
+
+> server-resolver.service.ts
+
+`
+@Injectable()
+export class ServerResolver implements Resolve<Server> {
+    constructor(private serverService: ServersService){}
+    
+    resolve(route: ActivatedRouteSnapshot, 
+        state: RouterStateSnapshot): Observable<Server> | Promise<Server> | Server {
+            this.serverService.getServer(+router.params['id']);    
+        }
+}`
+
+To now add this to a route:
+
+Add to providers in the app module
+
+Add it on the route that you want to use it
+
+`{ path: ':id' , component: ServerComponent, resolve: {
+    server: ServerResolver
+} }`
+
+the 'server' property will now be available in the component to be loaded via the route data param.
+
+> server.component.ts
+
+`ngOnInit() {
+    this.route.data.subscribe(
+    (data: Data) => {
+        this.server = data['server'] // needs to match name in the path resolve argument
+    })
+}`
+
+## 142. Understanding Location Strategies
+
+Server hosting your app in the real world needs to handle the case that when a 404 error occurs, it returns the index.html file containing your angular app.
+
+Fallback is using the # sign in your route - has compatibility with older apps.
+
+>app-routing.module.ts
+
+`RouterModule.forRoot(appRoutes, {useHash: true})`
+
+Forces webservers to ignore URL after the #, allowing angular to handle it.
+
+Default mode is called HtmlHistory.
+
+# Section 12 - Course projet - routing
+
+Just applies previous learnings.
+
+# Section 13 - Understanding Observables
+
+## 159. Module Introduction
+
+An observable is a data source. Provided by RxJS.
+
+Can represent events emitted over time.
+
+User input events, http requests, manual triggers in code, etc.
+
+OTher part is the Observer (the subscribe function).
+
+You have 3 ways to hook into an observer
+
+1. Handle data received
+2. Handle error received
+3. Handle completion (some dont ever complete)
+
+Data is provided asynchronously. 
+
+## 160. Angular 6 and RxJS 6
+
+Syntax differs with RxJS 6 (way you import things) - if upgrading to angular 5, you need to change the imports in your project. Otherwise you can import the following module:
+
+`npm install --save rxjs-compat`
+
+It exposes imports that match the RxJS way of doing it < 6
+
+## 161. Analyzing a built-in angular observable
+
+Looks at `route.params` 
+
+`this.route.params.subscribe(
+    (params: Params) => {
+        this.id = +params['id'];
+    },
+    () => {},
+    () => {}
+)`
+
+subscribe takes 3 args - first is on new data, second is on error, third is on completion.
+
+## 162. Building & Using a first simple observable
+
+An observable to emit ascending numbers at a fixed interval.
+
+`import { Observable } from 'rxjs/Observable';
+
+...
+
+const myNumbers = Observable.interval(100);
+myNumbers.subscribe(
+    (number: number) => {
+        console.log(number);
+    }
+);`
+
+Observable.interval method takes param of how many ms to wait before emiting a nummber.
+
+## 163. Building a custom observable
+
+One that will fire after 2 and 4 seconds, then fail after 5 seconds.
+
+`const myObservable = Observable.create((observer: Observer) => {
+    
+});`
+
+create() takes a function as an argument, and should hold your async code.
+
+We tell the Observer that's passed in to the anonymous function when to emit events.
+
+
+`const myObservable = Observable.create((observer: Observer) => {
+    setTimeout(() => {
+        observer.next('first package');
+    }, 2000);
+    setTimeout(() => {
+        observer.next('second package');
+    }, 4000);
+    setTimeout(() => {
+        observer.error('this does not work');
+    }, 5000);
+});`
+
+next() pushes the next data package into the observable.
+error() pushes an error.
+
+you can then subscribe to it:
+
+`
+myObservable.subscribe(
+    (data: string) => { console.log(data); },
+    (error: string) => { console.error(error); },
+    () => { console.log('completed'); }
+)`
+
+Can also call complete() in the observable definition - this will complete the observable.
+
+Need to unsubscribe too!! Don't forget
+
+## 166. Using Subjects to pass AND listen to data
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
