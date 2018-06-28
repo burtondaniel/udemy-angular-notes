@@ -1566,22 +1566,108 @@ Need to unsubscribe too!! Don't forget
 
 
 
+... skipped to next section.
 
+# Section 14 - Handling Forms in Angular Apps
 
+## 173. Template driven vs Reactive approach
 
+Template driven - angular infers the form object from the DOM (simpler)
 
+Reative - Form is created programmatically and synched with the DOM. (more complex)
 
+## 174. An example form
 
+Typical `<form>` where inputs have an id.
 
+`<form>` in his example doesnt have action or method defined. This is because we want Angular to handle the form for us. 
 
+## 175. Creating the form and registering the controls.
 
+Import the `FormsModule` in your app - required for the template driven approach.
 
+Angular will create a javascript representation of any form you create automatically.
 
+However we still need to inform Angular about which input you want as controls. (controls meaning represented in javascript)
 
+You add `ngModel` as an attribute on any element you want to exist as a control, and also provide a `name` value for the input.
 
+eg.
 
+`<form>
+    <input type="text" name="email" ngModel>
+</form>`
 
+## 176. TD: Submitting and using the form
 
+Hook up a method to listen to form submission events, via a directive called `ngSubmit`. 
+
+`<form (ngSubmit)="onSubmit()">
+</form>
+`
+
+where `onSubmit()` is a function defined in the component.
+
+Can get a hook to the form as follows (setup a local reference to a form object that Angular creates for you automatically - ngForm):
+
+`<form (ngSubmit)="onSubmit(f)" #f="ngForm">
+</form>
+`
+
+and in the component:
+
+`onSubmit(form: NgForm) {
+    console.log(form);
+}`
+
+they are then available under the value attribute in the form (by key-value pairs keyed by the form element names).
+
+# 177. TD: Understanding Form State
+
+controls - shows which controls are registered in the form (that have ngModel applied)
+
+Controls themselves have properties as well.
+
+`dirty 
+disabled
+enabled
+errors`
+
+dirty - has the form input changed at all?
+invalid - according to validators
+touched - has there been any input (ie has the user tabbed into it at all)
+
+## 178. TD: Accessing the forms with @ViewChild
+
+Instead of passing a local reference
+
+`@ViewChild('f') signupForm: NgForm`
+
+Will give you the same reference in a nicer way.
+
+## 179. TD: Adding Validation to check User Input
+
+Doen in the template in TD forms - they mark an input / control / form as not being valid if they are not met
+
+examples: 
+
+`required` - built in directive in Angular
+
+`email` - another Angular directive which makes sure the input is a valid email address
+
+`pattern` - regex pattern validator
+
+`ng-dirty`, `ng-touched`, `ng-valid` are all classes used by angular to mark the validity state of inputs.
+
+## 180. Built in validators + HTML 5 validation
+
+Which Validators do ship with Angular? 
+
+Check out the Validators class: https://angular.io/docs/ts/latest/api/forms/index/Validators-class.html - these are all built-in validators, though that are the methods which actually get executed (and which you later can add when using the reactive approach).
+
+For the template-driven approach, you need the directives. You can find out their names, by searching for "validator" in the official docs: https://angular.io/api?type=directive - everything marked with "D" is a directive and can be added to your template.
+
+Additionally, you might also want to enable HTML5 validation (by default, Angular disables it). You can do so by adding the ngNativeValidate  to a control in your template.
 
 
 
